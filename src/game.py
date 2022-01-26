@@ -3,7 +3,10 @@ import os
 import numpy as np
 import time
 from math import sqrt
-import random
+from server import Server
+import threading
+import multiprocessing
+from playsound import playsound
 import mazeGeneration
 from serialData import readSerialData, readLine
 from serial import *
@@ -12,6 +15,9 @@ terrain_dict = {'WALL': 0, 'ROAD': 1, 'GOAL': 2, 'START': 3}
 BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
+
+# Port to connect to android app
+PORT = 8000
 
 firstiteration = True  # helps the palette swap
 #port = 'COM5'  # specify port used to read analog data (EDA/ECG)
@@ -87,6 +93,45 @@ class Game:
         goal1 = pygame.image.load(os.path.join('../assets', 'goal-1.png'))
         self.goal1 = pygame.transform.scale(goal1, (self.block_size, self.block_size))
 
+        # music
+        self.played = False
+        self.play_background()
+
+
+    def play_scream(self):
+        def play():
+            playsound('../assets/wilhelm.wav')
+
+        try:
+            t = threading.Thread(target=play)
+            t.daemon = True
+            t.start()
+        except:
+            print("cannot read the sound file")
+
+    def play_background(self):
+        def play():
+            while True:
+                playsound("../assets/tetris.mp3")
+
+        try:
+            t = threading.Thread(target=play)
+            t = BackgroundThread(target=play)
+            t.daemon = True
+            t.start()
+        except:
+            print("cannot read the sound file")
+
+    def play_win(self):
+        def play():
+            playsound("../assets/win.wav")
+        try:
+            t = threading.Thread(target=play)
+            t.daemon = True
+            t.start()
+        except:
+            print("cannot read the sound file")
+
     def palette_swap(self, surf, old_color, new_color):
         #select a color to be replaced
         img_copy = pygame.Surface(surf.get_size())
@@ -148,6 +193,7 @@ class Game:
 
             keys_pressed = pygame.key.get_pressed()
             if keys_pressed[pygame.K_SPACE] and not self.end_drawn and self.ended:
+                self.played = False
                 self.level += 1
                 self.load_level(self.levels[self.level - 1])
                 self.ended = False
@@ -264,6 +310,7 @@ class Game:
             grid_y += 1
 
         if self.current_level[grid_y, grid_x] == 0:
+            self.play_scream()
             self.errors += 1
             return False
         else:
@@ -286,7 +333,6 @@ class Game:
                                  self.to_coord(start[0, 0]),
                                  self.block_size, self.block_size)
 
-
     def to_grid(self, val):
         return int(val // self.block_size)
 
@@ -294,6 +340,9 @@ class Game:
         return val * self.block_size
 
     def draw_end_level(self):
+        if not self.played:
+            self.play_win()
+            self.played = True
 
         self.window.fill(WHITE)
 
@@ -336,6 +385,17 @@ class Game:
             self.window.blit(text, text_rect)
             self.end_drawn = True
 
+
+class BackgroundThread(threading.Thread):
+    def __init__(self,  *args, **kwargs):
+        super(BackgroundThread, self).__init__(*args, **kwargs)
+        self._stop_event = threading.Event()
+
+    def stop(self):
+        self._stop_event.set()
+
+    def stopped(self):
+        return self._stop_event.is_set()
 
 if __name__ == '__main__':
     game = Game(20, 20, 20, 10, mode='generation')
