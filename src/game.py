@@ -13,7 +13,7 @@ BLACK = (0, 0, 0)
 WHITE = (255, 255, 255)
 RED = (255, 0, 0)
 
-firstiteration = True # helps the palette swap
+firstiteration = True  # helps the palette swap
 #port = 'COM5'  # specify port used to read analog data (EDA/ECG)
 #s = Serial(port)
 #device = readLine(s)  # might be a costly solution
