@@ -19,9 +19,14 @@ RED = (255, 0, 0)
 PORT = 8000
 
 firstiteration = True  # helps the palette swap
-#port = 'COM5'  # specify port used to read analog data (EDA/ECG)
-#s = Serial(port)
-#device = readLine(s)  # might be a costly solution
+
+#for windows
+port = 'COM5'  # specify port used to read analog data (EDA/ECG)
+#for mac
+#port = '/dev/cu.usbmodem142101'
+
+s = Serial(port)
+device = readLine(s)  # might be a costly solution
 
 
 class Game:
@@ -55,6 +60,12 @@ class Game:
         self.terrain = None
         self.agent = None
         self.visibility = 4
+
+        #physio
+        self.OLD_EDA = self.read_physiological_data(device)
+        self.EDA = self.OLD_EDA
+        self.OLD_ECG = self.read_physiological_data(device)
+        self.ECG = self.OLD_ECG
 
         # events
         self.level_ended = pygame.USEREVENT + 1
@@ -155,13 +166,47 @@ class Game:
         except:
             print("cannot read the sound file")
 
+    def visibility_swap(self, visibility, old_bpm, new_bpm) : 
+        """
+        Retourne la nouvelle valeur de visibilité en focntion de la différence de bpm. 
+        """
+        if new_bpm - old_bpm >= 5 : 
+            return visibility-1 
+        elif old_bpm - new_bpm >= 5 : 
+            return visibility+1
+        else : 
+            return visibility
+
+    def color_variation(self, old_eda, new_eda) : 
+        if new_eda - old_eda >= 1 : 
+            return 15
+        elif old_eda - new_eda >= 1 : 
+            return -15
+        else : 
+            return 0
+    
     def palette_swap(self, surf, old_color, new_color):
+
+        for channel in range(3): 
+            if new_color[channel] >= 256 : 
+                new_color[channel]=255
+            elif new_color[channel] <= 0 :
+                new_color[channel]=0
+
         #select a color to be replaced
         img_copy = pygame.Surface(surf.get_size())
         img_copy.fill(new_color)
         surf.set_colorkey(old_color)
         img_copy.blit(surf, (0, 0))
-        return img_copy
+        return img_copy, new_color
+
+    def read_physiological_data(self, device):
+        ser_bytes = device.readline()
+        decoded_bytes = ser_bytes[0:len(ser_bytes)-2].decode("utf-8")
+        decoded_bytes = decoded_bytes.replace(',','')
+        decoded_bytes = float(decoded_bytes)
+        return decoded_bytes
+
     
     def run(self):
         clock = pygame.time.Clock()
@@ -194,10 +239,32 @@ class Game:
                 channel_1 = 255
                 channel_2 = 179
                 channel_3 = 0
+
+                channel_1_grass = 139
+                channel_2_grass = 195
+                channel_3_grass = 74
+
                 global port
-            self.original_c = ((channel_1%256), channel_2%256, channel_3%256)
-            self.road = self.palette_swap(self.road, self.original_c, ((channel_1 + 1)%256, 179, 0))
+                self.original_c = (channel_1, channel_2, channel_3)
+                self.original_c_grass = (channel_1_grass, channel_2_grass, channel_3_grass)
+                firstiteration = False
+
+            self.EDA = self.read_physiological_data(device)
+            #print('EDA = ', EDA)
+            self.ECG = self.read_physiological_data(device)
+            #print('ECG = ', ECG)
+
+            
+            var = self.color_variation(self.OLD_EDA, self.EDA)
+            self.road, self.original_c = self.palette_swap(self.road, self.original_c, (self.original_c[0], self.original_c[1], self.original_c[2]+var))
             self.road.set_colorkey((0, 0, 0))
+            self.grass, self.original_c_grass = self.palette_swap(self.grass, self.original_c_grass, (self.original_c_grass[0], self.original_c_grass[1]+var, self.original_c_grass[2]))
+            self.grass.set_colorkey((0, 0, 0))
+
+            self.visibility = self.visibility_swap(self.visibility, self.OLD_ECG, self.ECG)
+
+            self.OLD_EDA = self.EDA
+            self.OLD_ECG = self.ECG
             
             # grass
             '''

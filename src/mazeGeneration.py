@@ -15,7 +15,7 @@ class Maze:
         self.height = height
         self.cells = numpy.ones((self.height, self.width))
         self.dfs()
-        #self.exportToCsv()
+        self.exportToCsv()
 
     def change_cell(self, cell, value):
         self.cells[cell] = value
@@ -87,7 +87,7 @@ class Maze:
                                 self.cells[i,j] = 0
                         elif(self.cells[i,j] == 0.5):
                                 self.cells[i,j] = 1
-        numpy.savetxt('./assets/levels/' + self.levelName + '.csv', self.cells, delimiter=',', fmt = '%1d')
+        numpy.savetxt('../assets/levels/' + self.levelName + '.csv', self.cells, delimiter=',', fmt = '%1d')
         return None
 
 #X = Maze(levelName = 'teeest')
