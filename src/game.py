@@ -21,9 +21,9 @@ PORT = 8000
 firstiteration = True  # helps the palette swap
 
 #for windows
-port = 'COM5'  # specify port used to read analog data (EDA/ECG)
+#port = 'COM5'  # specify port used to read analog data (EDA/ECG)
 #for mac
-#port = '/dev/cu.usbmodem142101'
+port = '/dev/cu.usbmodem142101'
 
 s = Serial(port)
 device = readLine(s)  # might be a costly solution
@@ -64,7 +64,7 @@ class Game:
         #physio
         self.OLD_EDA = self.read_physiological_data(device)
         self.EDA = self.OLD_EDA
-        self.OLD_ECG = self.read_physiological_data(device)
+        self.OLD_ECG = 60000 / self.read_physiological_data(device)
         self.ECG = self.OLD_ECG
 
         # events
@@ -147,7 +147,7 @@ class Game:
     def play_background(self):
         def play():
             while True:
-                playsound("../assets/tetris.mp3")
+                playsound("/Users/yamazakihiroyoshi/Downloads/korobushka.mp3")#("../assets/tetris.mp3")
 
         try:
             t = threading.Thread(target=play)
@@ -187,6 +187,7 @@ class Game:
     
     def palette_swap(self, surf, old_color, new_color):
 
+        new_color = list(new_color)
         for channel in range(3): 
             if new_color[channel] >= 256 : 
                 new_color[channel]=255
@@ -251,7 +252,7 @@ class Game:
 
             self.EDA = self.read_physiological_data(device)
             #print('EDA = ', EDA)
-            self.ECG = self.read_physiological_data(device)
+            self.ECG = 60000 / self.read_physiological_data(device)
             #print('ECG = ', ECG)
 
             
