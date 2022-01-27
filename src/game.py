@@ -5,7 +5,6 @@ import time
 from math import sqrt
 from server import Server
 import threading
-import multiprocessing
 from playsound import playsound
 import mazeGeneration
 from serialData import readSerialData, readLine
@@ -93,10 +92,35 @@ class Game:
         goal1 = pygame.image.load(os.path.join('../assets', 'goal-1.png'))
         self.goal1 = pygame.transform.scale(goal1, (self.block_size, self.block_size))
 
+        # Server related
+        self.server = Server(PORT)
+        self.server.start()
+        self.run_server()
+
+        # Movement related
+        self.vec = []
+        self.last_moved = time.time()
+        self.last_x = 0
+        self.last_z = 0
+        self.x_active = False
+        self.z_active = False
+        self.activated = time.time()
+
         # music
         self.played = False
         self.play_background()
 
+    def run_server(self):
+        def run():
+            while True:
+                vec = self.server.get()
+                self.vec = vec
+        try:
+            t=threading.Thread(target=run)
+            t.daemon = True
+            t.start()
+        except:
+            print("Error: unable to start thread")
 
     def play_scream(self):
         def play():
@@ -116,7 +140,6 @@ class Game:
 
         try:
             t = threading.Thread(target=play)
-            t = BackgroundThread(target=play)
             t.daemon = True
             t.start()
         except:
@@ -279,16 +302,27 @@ class Game:
         self.window.blit(text, text_rect)
 
     def handle_decision(self):
-        keys_pressed = pygame.key.get_pressed()
 
-        if keys_pressed[pygame.K_LEFT] and self.move_possible('LEFT'):
-            self.agent.x -= self.block_size
-        if keys_pressed[pygame.K_RIGHT] and self.move_possible('RIGHT'):
-            self.agent.x += self.block_size
-        if keys_pressed[pygame.K_UP] and self.move_possible('UP'):
-            self.agent.y -= self.block_size
-        if keys_pressed[pygame.K_DOWN] and self.move_possible('DOWN'):
-            self.agent.y += self.block_size
+        x_thresh = 7
+        y_thresh = 7
+        pause = .1
+
+        if time.time() - self.last_moved < pause:
+            return
+
+        self.last_moved = time.time()
+        if self.vec:
+            try:
+                if self.vec[0] < -x_thresh and self.move_possible('RIGHT'):
+                    self.agent.x += self.block_size
+                if self.vec[0] > x_thresh and self.move_possible('LEFT'):
+                    self.agent.x -= self.block_size
+                if self.vec[1] < -y_thresh and self.move_possible('UP'):
+                    self.agent.y -= self.block_size
+                if self.vec[1] > y_thresh and self.move_possible('DOWN'):
+                    self.agent.y += self.block_size
+            except Exception:
+                print("something went wrong")
 
         if self.current_level[self.to_grid(self.agent.y), self.to_grid(self.agent.x)] == 2:
             self.arrived = True
@@ -385,17 +419,6 @@ class Game:
             self.window.blit(text, text_rect)
             self.end_drawn = True
 
-
-class BackgroundThread(threading.Thread):
-    def __init__(self,  *args, **kwargs):
-        super(BackgroundThread, self).__init__(*args, **kwargs)
-        self._stop_event = threading.Event()
-
-    def stop(self):
-        self._stop_event.set()
-
-    def stopped(self):
-        return self._stop_event.is_set()
 
 if __name__ == '__main__':
     game = Game(20, 20, 20, 10, mode='generation')
