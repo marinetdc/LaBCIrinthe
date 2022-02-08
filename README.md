@@ -15,3 +15,5 @@ LaBCIrithe is a 2D game implemented in pygame and Android application. It takes 
   -  `serialData.py`: communicate with Arduino
   -  `server.py`: communicate with Android application through a server socket
 
+![](game-1.gif)
+![](game-2.gif)
