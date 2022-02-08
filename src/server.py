@@ -5,6 +5,11 @@ PORT = 8000
 
 
 class Server:
+    """
+    This class serves as the host for the server connection with Android app. It accepts datastream in the format of str and converts into a 3D vector of floats.
+    This class is currently very unstable.
+    
+    """
     def __init__(self, port):
         self.host = socket.gethostname()
         self.port = port
