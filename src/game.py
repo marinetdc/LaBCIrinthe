@@ -122,6 +122,9 @@ class Game:
         self.play_background()
 
     def run_server(self):
+        """
+        Server thread
+        """
         def run():
             while True:
                 vec = self.server.get()
@@ -134,6 +137,9 @@ class Game:
             print("Error: unable to start thread")
 
     def play_scream(self):
+        """
+        Plays scream when against wall. need own thread in order not to stop the main thread.
+        """
         def play():
             playsound('../assets/wilhelm.wav')
 
@@ -145,6 +151,9 @@ class Game:
             print("cannot read the sound file")
 
     def play_background(self):
+        """
+        plays background music in the background.
+        """
         def play():
             while True:
                 playsound("/Users/yamazakihiroyoshi/Downloads/korobushka.mp3")#("../assets/tetris.mp3")
@@ -157,6 +166,9 @@ class Game:
             print("cannot read the sound file")
 
     def play_win(self):
+        """
+        Play sound when reached goal
+        """
         def play():
             playsound("../assets/win.wav")
         try:
@@ -210,6 +222,7 @@ class Game:
 
     
     def run(self):
+        
         clock = pygame.time.Clock()
         self.start = time.time()
 
@@ -350,6 +363,9 @@ class Game:
                         self.window.blit(self.road, (x, y))
 
     def print_status(self):
+        """ 
+        Print current status
+        """
         # Set font
         font_size = 20
         font = pygame.font.Font('freesansbold.ttf', font_size)
@@ -370,6 +386,9 @@ class Game:
         self.window.blit(text, text_rect)
 
     def handle_decision(self):
+        """
+        Treat the decision made by player appropriately
+        """
 
         x_thresh = 7
         y_thresh = 7
@@ -396,6 +415,9 @@ class Game:
             self.arrived = True
 
     def move_possible(self, direction):
+        """
+        check if the movemint in the chosen direction is possible. Increase number of errors if not
+        """
         if not self.in_window(direction):
             self.errors += 1
             return False
@@ -429,6 +451,9 @@ class Game:
             return self.to_grid(self.agent.y) < self.grid_height - 1
 
     def load_level(self, level):
+        """
+        load a new level
+        """
         self.current_level = level
         start = np.argwhere(self.current_level == terrain_dict['START'])
         self.agent = pygame.Rect(self.to_coord(start[0, 1]),
@@ -436,12 +461,21 @@ class Game:
                                  self.block_size, self.block_size)
 
     def to_grid(self, val):
+        """
+        convert from coordinate on the screen to grid location
+        """
         return int(val // self.block_size)
 
     def to_coord(self, val):
+        """
+        convert from grid location to coordinate on the screen
+        """
         return val * self.block_size
 
     def draw_end_level(self):
+        """
+        Draw the end of the level scene
+        """
         if not self.played:
             self.play_win()
             self.played = True
@@ -464,6 +498,9 @@ class Game:
         self.window.blit(text, text_rect)
 
     def draw_game_end(self):
+        """
+        Draw the ending scene
+        """
         if not self.end_drawn:
             self.window.fill(WHITE)
 
