@@ -17,3 +17,7 @@ LaBCIrithe is a 2D game implemented in pygame and Android application. It takes 
 
 ![](game-1.gif)
 ![](game-2.gif)
+
+
+![alt text](Screenshot_1644869101.png)
+![alt text](cover.jpg)
