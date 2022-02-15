@@ -20,4 +20,4 @@ LaBCIrithe is a 2D game implemented in pygame and Android application. It takes 
 ![](game-2.gif)
 
 
-![alt text](Screenshot_1644869101.png | width=100)
+<img src="https://github.com/marinetdc/LaBCIrinthe/Screenshot_1644869101.png" width="48">
